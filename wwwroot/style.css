@@ -1,0 +1,72 @@
+html {
+	overflow-y: scroll;
+}
+body {
+	font-family: myriad-pro, Helvetica, Arial, sans-serif;
+}
+h1 {
+	width: 1000px;
+	margin: 10px auto;
+}
+.container {
+	width: 1000px;
+	padding-top: 600px;
+	overflow: hidden;
+	/*background: url(img/arena1.jpg);*/
+	margin: 0px auto;
+	position: relative;
+	font-size: 12px;
+	border: 1px solid #ccc;
+}
+.messages {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+.messages .points {
+	color: rgba(255,0,0,.9);
+}
+.messages .me {
+	color: rgba(255,120,0,.9);
+}
+.object {
+	position: absolute;
+	background: rgba(150,150,150,.75);
+}
+.object.forPoints {
+	background: rgba(255,120,0,.7);
+}
+.object.highlight {
+	background: rgba(255,0,0,.9);
+}
+.player {
+	position: absolute;
+	background: url(img/dude.png) -11px 0px;
+}
+.player.walkingLeft {
+	background: url(img/left-sprite.png) -11px 0px;
+}
+.player.walkingRight {
+	background: url(img/right-sprite.png) -11px 0px;
+}
+.player.punchLeft {
+	background: url(img/punch-left-sprite.png) -11px 0px;
+}
+.player.punchRight {
+	background: url(img/punch-right-sprite.png) -11px 0px;
+}
+.player.me {
+	background: url(img/dude_me.png) -11px 0px;
+}
+.player.walkingLeft.me {
+	background: url(img/left-sprite_me.png) -11px 0px;
+}
+.player.walkingRight.me {
+	background: url(img/right-sprite_me.png) -11px 0px;
+}
+.player.punchLeft.me {
+	background: url(img/punch-left-sprite_me.png) -11px 0px;
+}
+.player.punchRight.me {
+	background: url(img/punch-right-sprite_me.png) -11px 0px;
+}
