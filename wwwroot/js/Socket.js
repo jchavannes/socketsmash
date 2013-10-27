@@ -5,17 +5,16 @@ var Socket = new (function() {
 
 	this.init = function() {
         socket = io.connect('ws://192.168.200.39:8010');
-        socket.on('getSocket', function(data) {
-            socket.emit('setSession', {sessionId: SESSIONID, sockId: data.sockId, defaultLeft: players[0].left, defaultTop: players[0].top});
+        socket.on('connect', function() {
+            socket.emit('setSession', {sessionId: SESSIONID, defaultLeft: players[0].left, defaultTop: players[0].top});
         });
         socket.on('getMyUserInfo', function(data) {
             user.id = data.id;
-            Socket.offPlatform();
         });
         socket.on('getMove', function(data) {
             var id = data.id;
             var ele = $('.player[data-id='+id+']');
-            if (ele.length < 1) {
+            if (ele.length != 1) {
                 if (user.id != data.id) {
                     ele = $('<div class="player" data-id="'+id+'"></div>');
                     $('.container').append(ele.css({left: data.curLeft, top: data.curTop, width: players[0].width, height: players[0].height}));
@@ -54,7 +53,7 @@ var Socket = new (function() {
             scores.sort(function(a,b) {
                return a.kills < b.kills;
             });
-            for(var i = 0; i < scores.length; i++) {
+            for (var i = 0; i < scores.length; i++) {
                 if (scores[i].onPlatform && scores[i].score > 0) {
                     html += "<span class='points'>";
                 } else if (scores[i].id == Socket.user().id) {
@@ -75,24 +74,13 @@ var Socket = new (function() {
 		socket.emit('death', params);
 	};
 	this.sendAnimate = function(params) {
-		params.id = user.id;
         params.facing = Controls.facing;
 		socket.emit('sendAnimate', params);
 	};
-	this.onPlatform = function() {
-		var params = {id: user.id};
-		socket.emit('onPlatform', params);
-	};
-	this.offPlatform = function() {
-		var params = {id: user.id};
-		socket.emit('offPlatform', params);
-	};
 	this.sendAttack = function(params) {
-		params.id = user.id;
 		socket.emit('sendAttack', params);
 	};
 	this.sendmove = function(params) {
-		params.id = user.id;
 		socket.emit('sendMove', params);
 	};
 	this.user = function() {

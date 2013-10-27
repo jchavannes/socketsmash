@@ -1,242 +1,246 @@
 /* Author: Jason Chavannes <jason.chavannes@gmail.com>
  * Date: 9/2/2012 */
 
- // Load dependencies and create data stores
 var io = require('socket.io').listen(8010);
-
-var sockets = [];
-var users = [];
-var chatData = [];
-
-// New connection
 io.sockets.on('connection', function (socket) {
+    new Session(socket);
+});
 
-    // Add connection to socket store
-    var id = sockets.length;
-    sockets[id] = {id: id, socket: socket};
-
-    // Send socket id to client
-    sockets[id].socket.emit('getSocket', {sockId: id});
-
-    // Get session key from client
-    sockets[id].socket.on('setSession', function(data) {
-
-        // Save session key to socket store
-        sockets[data.sockId].sessionId = data.sessionId;
-        var userId = false;
-
-        // Check if user exists already
-        for (var i = 0; typeof users[i] != 'undefined'; i++) {
-            if (users[i].sessionId == data.sessionId) {
-                userId = i;
-                users[i].sockId = data.sockId;
+var Server = {
+    ChatData: [],
+    Games:    [],
+    Sessions: [],
+    Users: {
+        data: [],
+        add: function(user) {
+            user.id = this.data.length;
+            this.data[user.id] = user;
+        },
+        find: function(sessionId) {
+            for (var i = 0; i < this.data.length; i++) {
+                if (this.data[i].sessionId == sessionId) {
+                    return this.data[i];
+                }
             }
-        }
-
-        // Create new user
-        if (userId === false) {
-            userId = users.length;
-
-            // Set default information
-            users[userId] = {
-                id: userId,
-                sessionId: data.sessionId,
-                sockId: data.sockId,
-                active: true,
-                kills: 0,
-                deaths: 0,
-                lastAttack: false,
-                lastAttackTimeout: false,
-                //chatStart: chatData.length,
-                left: data.defaultLeft,
-                top: data.defaultTop,
-                percentage: 0
-            }
-        }
-
-        // Save user id to socket store
-        sockets[data.sockId].userId = userId;
-
-        // Set / Refresh expiration
-        refreshUser(userId);
-
-        // Send user information to client
-        sockets[data.sockId].socket.emit('getMyUserInfo', {
-            id: userId
-        });
-
-        var now = new Date().getTime();
-        users.forEach(function(user) {
-
-            // Send all users to client
-            if (user.expire > now && user.active) {
-                sockets[data.sockId].socket.emit('getMove', {
-                    id: user.id,
-                    curLeft: user.left,
-                    curTop: user.top,
-                    left: user.left,
-                    top: user.top
-                });
-                sockets[data.sockId].socket.emit('newUser', {
-                    id: user.id,
-                    expire: user.expire,
-                    name: user.name,
-                    initials: user.initials
-                });
-            }
-
-            // Send new user to all clients
-            if (user.active && user.id != userId) {
-                sockets[user.sockId].socket.emit('getMove', {
-                    id: users[userId].id,
-                    curLeft: users[userId].left,
-                    curTop: users[userId].top,
-                    left: users[userId].left,
-                    top: users[userId].top
-                });
-                sockets[user.sockId].socket.emit('newUser', {
-                    id: users[userId].id,
-                    expire: users[userId].expire,
-                    name: users[userId].name,
-                    initials: users[userId].initials
-                });
-            }
-        });
-        sendScores();
-    });
-
-    // Get move from client
-    sockets[id].socket.on('sendAttack', function(data) {
-        if (typeof users[data.id] != 'undefined' && typeof users[data.playerId] != 'undefined') {
-            refreshUser(data.id);
-            users[data.playerId].percentage += (data.move && data.move == "moveS") ? Math.floor(Math.random()*5 + 20) : Math.floor(Math.random()*5 + 10);
-            users[data.playerId].lastAttack = data.id;
-            clearTimeout(users[data.playerId].lastAttackTimeout);
-            users[data.playerId].lastAttackTimeout = setTimeout(function() {
-                users[data.playerId].lastAttack = false;
-            }, 2500);
-
-            sockets[users[data.playerId].sockId].socket.emit('getAttack', {
-                move: data.move,
-                direction: data.direction
-            });
-        }
-        sendScores();
-    });
-
-    // Send animate
-    sockets[id].socket.on('sendAnimate', function(data) {
-        if (typeof users[data.id] != 'undefined') {
-            for (var i = 0; i < users.length; i++) {
-                if (i != data.id && users[i].active) {
-                    sockets[users[i].sockId].socket.emit('getAnimate', {
-                        id:data.id,
-                        move: data.move,
-                        facing: data.facing
+            return false;
+        },
+        sendScores: function(id) {
+            var scores = [], i, user;
+            for (i = 0; i < this.data.length; i++) {
+                user = this.data[i];
+                if (user.isActive()) {
+                    scores.push({
+                        id:         user.id,
+                        kills:      user.kills,
+                        deaths:     user.deaths,
+                        percentage: user.percentage
                     });
                 }
             }
-        }
-    });
-
-    // Get move from client
-    sockets[id].socket.on('sendMove', function(data) {
-        if (typeof users[data.id] != 'undefined') {
-            refreshUser(data.id);
-            users[data.id].left = data.left;
-            users[data.id].top = data.top;
-
-            // Send move to all clients (except sending client)
-            users.forEach(function(user) {
-                if (user.id != data.id && user.active) {
-                    sockets[user.sockId].socket.emit('getMove', {
-                        id: data.id,
-                        curLeft: data.curLeft,
-                        curTop: data.curTop,
-                        left: data.left,
-                        top: data.top
-                    })
+            if (id != null) {
+                this.data[id].emit('getScores', {scores: scores});
+            } else {
+                for (i = 0; i < this.data.length; i++) {
+                    this.data[i].emit('getScores', {scores: scores});
                 }
-            });
-        }
-    });
-
-    // Death
-    sockets[id].socket.on('death', function(data) {
-        if (typeof users[sockets[id].userId] != 'undefined') {
-            users[sockets[id].userId].percentage = 0;
-            users[sockets[id].userId].deaths += 1;
-        }
-        if (typeof users[data.id] != 'undefined') {
-            if (users[data.id].lastAttack !== false && typeof users[users[data.id].lastAttack] != 'undefined') {
-                users[users[data.id].lastAttack].kills += 1;
             }
         }
-        sendScores();
-    });
-
-    // Make inactive on disconnect
-    var disconnect = sockets[id];
-    sockets[id].socket.on('disconnect', function() {
-        if (typeof users[sockets[disconnect.id].userId] != 'undefined') {
-            users[sockets[disconnect.id].userId].active = false;
-
-            // Send disconnect to all clients
-            users.forEach(function(user) {
-                if (user.active) {
-                    sockets[user.sockId].socket.emit('userExit', {id: disconnect.userId});
-                }
-            });
-            sendScores();
-            sendMessage(sockets[disconnect.id].userId, "has disconnected.<br/>", false);
-        }
-    });
-});
-
-function sendScores(id) {
-    var scores = [], i;
-    for (i = 0; i < users.length; i++) {
-        if (users[i].active) {
-            scores.push({
-                id: i,
-                kills: users[i].kills,
-                deaths: users[i].deaths,
-                percentage: users[i].percentage
-            });
-        }
     }
-    if (typeof id == 'undefined' || typeof users[id] == undefined) {
-        for (i = 0; i < users.length; i++) {
-            sockets[users[i].sockId].socket.emit('getScores', {scores: scores});
-        }
-    } else {
-        sockets[users[id].sockId].socket.emit('getScores', {scores: scores});
-    }
-}
+};
 
-// Add message to history and send
-function sendMessage(id, msg, log) {
-    var name;
-    if (typeof log == 'undefined') {log = true;}
-    if (typeof users[id] != 'undefined' && typeof users[id].name != 'undefined') {
-        name = users[id].name;
-    } else {
+var Game = function() {};
+
+var User = function(data) {
+    this.sessionId  = data.sessionId;
+    this.sockId     = data.sockId;
+    this.active     = true;
+    this.kills      = 0;
+    this.deaths     = 0;
+    this.lastAttack = false;
+    this.left       = data.defaultLeft;
+    this.top        = data.defaultTop;
+    this.percentage = 0;
+    this.lastAttackTimeout = false;
+
+    Server.Users.add(this);
+};
+User.prototype.isActive = function() {
+    return this.active && this.expire > new Date().getTime();
+};
+User.prototype.refresh = function() {
+    var now = new Date().getTime();
+    // Update user expiration
+    this.expire = now + 1000000;
+    this.active = true;
+};
+User.prototype.sendInfo = function() {
+    var self = this;
+    Server.Users.data.forEach(function(user) {
+        // Send new user to all other users
+        if (user.isActive() && user != self) {
+            user.emit('getMove', {
+                id:      self.id,
+                curLeft: self.left,
+                curTop:  self.top,
+                left:    self.left,
+                top:     self.top
+            });
+        }
+
+        // Send all other users to new user
+        if (user.isActive() && user != self) {
+            self.emit('getMove', {
+                id:      user.id,
+                curLeft: user.left,
+                curTop:  user.top,
+                left:    user.left,
+                top:     user.top
+            });
+        }
+    });
+};
+User.prototype.sendMove = function(data) {
+    var self = this;
+    Server.Users.data.forEach(function(user) {
+        if (user.isActive() && user != self) {
+            user.emit('getMove', {
+                id:      self.id,
+                curLeft: data.curLeft,
+                curTop:  data.curTop,
+                left:    data.left,
+                top:     data.top
+            })
+        }
+    });
+};
+User.prototype.sendDisconnect = function() {
+    var userId = this.id;
+    Server.Users.data.forEach(function(user) {
+        if (user.isActive()) {
+            user.emit('userExit', {id: userId});
+        }
+    });
+};
+User.prototype.sendMessage = function(msg, options) {
+    if (options == null) options = {};
+    var name = this.name, id = this.id;
+    if (options.server) {
         name = "Server";
         id = -1;
     }
-    if (log) {chatData.push({id: id, msg: msg, name: name});}
-    users.forEach(function(user) {
-        if (user.active) {
-            sockets[user.sockId].socket.emit('newChat', {id: id, msg: msg, name: name});
+    var chatData = {
+        id: id,
+        msg: msg,
+        name: name
+    };
+    if (options.log) {
+        Server.ChatData.push(chatData);
+    }
+    Server.Users.data.forEach(function(user) {
+        if (user.isActive()) {
+            user.emit('newChat', chatData);
         }
     });
-}
+};
+User.prototype.emit = function() {
+    this.session.socket.emit.apply(this.session.socket, arguments);
+};
 
-// Update user expiration
-function refreshUser(userId) {
-    var now = new Date().getTime();
-    if (typeof users[userId] != 'undefined') {
-        users[userId].expire = now + 1000000;
-        users[userId].active = true;
+var Session = function(socket) {
+    this.socket = socket;
+    this.id = Server.Sessions.length;
+    Server.Sessions[this.id] = this;
+    var self = this;
+    socket.on('setSession', function(data) {self.set(data);});
+};
+Session.prototype.set = function(data) {
+    this.sessionId = data.sessionId;
+    var user = Server.Users.find(data.sessionId);
+    if (user === false) {
+        user = new User(data);
     }
-}
+    this.user = user;
+    user.session = this;
+    this.socket.emit('getMyUserInfo', {id: user.id});
+    user.sendInfo();
+    user.refresh();
+    Server.Users.sendScores();
+    this.setEvents();
+};
+Session.prototype.setEvents = function() {
+    var self = this;
+    var socket = this.socket;
+    socket.on('sendAttack',  function(data) {self.sendAttack(data);});
+    socket.on('sendAnimate', function(data) {self.sendAnimate(data);});
+    socket.on('sendMove',    function(data) {self.sendMove(data);});
+    socket.on('death',       function(data) {self.death(data);});
+    socket.on('disconnect',  function(data) {self.disconnect(data);});
+    var socketPrototype = Object.getPrototypeOf(socket);
+    var socketEmit = socketPrototype.emit;
+    socketPrototype.emit = function() {
+        io.log.info(JSON.stringify(arguments));
+        socketEmit.apply(this, arguments);
+    };
+    socket.on('*', function() {
+
+    });
+};
+Session.prototype.sendAttack = function(data) {
+    if (!data.playerId || !data.move || !data.direction || typeof Server.Users.data[data.playerId] == 'undefined') {
+        return;
+    }
+    var player = Server.Users.data[data.playerId];
+    switch (data.move) {
+        case "moveS":
+            player.percentage += Math.floor(Math.random()*5 + 20);
+            break;
+        case "moveA":
+            player.percentage += Math.floor(Math.random()*5 + 10);
+            break;
+    }
+    player.lastAttack = this.user.id;
+    clearTimeout(player.lastAttackTimeout);
+    player.lastAttackTimeout = setTimeout(function() {
+        player.lastAttack = false;
+    }, 2500);
+    player.emit('getAttack', {
+        move:      data.move,
+        direction: data.direction
+    });
+    Server.Users.sendScores();
+};
+Session.prototype.sendAnimate = function(data) {
+    var user;
+    for (var i = 0; i < Server.Users.data.length; i++) {
+        user = Server.Users.data[i];
+        if (user != this.user && user.isActive()) {
+            user.emit('getAnimate', {
+                id:     this.user.id,
+                move:   data.move,
+                facing: data.facing
+            });
+        }
+    }
+};
+Session.prototype.sendMove = function(data) {
+    this.user.refresh();
+    this.user.left = data.left;
+    this.user.top  = data.top;
+    this.user.sendMove(data);
+};
+Session.prototype.death = function(data) {
+    this.user.percentage = 0;
+    this.user.deaths += 1;
+    if (this.user.lastAttack !== false && typeof Server.Users.data[this.user.lastAttack] != 'undefined') {
+        Server.Users.data[this.user.lastAttack].kills += 1;
+    }
+    Server.Users.sendScores();
+};
+Session.prototype.disconnect = function() {
+    if (this.user.session == this) {
+        this.user.active = false;
+        this.user.sendDisconnect();
+        Server.Users.sendScores();
+        this.user.sendMessage("has disconnected.<br/>");
+    }
+};

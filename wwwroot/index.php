@@ -6,9 +6,7 @@
 	<meta name="author" content="Jason Chavannes <jason.chavannes@gmail.com>" />
 	<title>Socket Smash</title>
 
-	<script type="text/javascript"><?php
-		echo "var SESSIONID = '".session_id()."';";
-	?></script>
+	<script type="text/javascript"><?php echo "var SESSIONID = '".session_id()."';"; ?></script>
 
     <script type="text/javascript" src="js/3p/head.min.js"></script>
     <script type="text/javascript">
