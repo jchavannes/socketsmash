@@ -10,39 +10,64 @@
 		echo "var SESSIONID = '".session_id()."';";
 	?></script>
 
-	<script type="text/javascript" src="js/3p/jquery.min.js"></script>
-	<script type="text/javascript" src="js/3p/jquery-ui.min.js"></script>
-	<script type="text/javascript" src="js/3p/socket.io.js"></script>
+    <script type="text/javascript" src="js/3p/head.min.js"></script>
+    <script type="text/javascript">
+        head.js(
+            "js/3p/jquery-1.9.1.min.js",
+            "js/3p/jquery-ui-1.10.1.min.js",
+            "js/3p/socket.io.js",
+            "js/arenas/irule.js",
+            //"js/arenas/safron.js",
+            "js/Animate.js",
+            "js/Arena.js",
+            "js/AI.js",
+            "js/Controls.js",
+            "js/Moves.js",
+            "js/Socket.js"
+        );
+        head.ready(function() {
+            Socket.init();
+            Arena.init();
+            Controls.init();
+
+            Animate.run();
+            Animate.Sprites.run();
+        });
+    </script>
 
 	<link rel="stylesheet" href="style.css" />
 	<link rel="shortcut icon" href="img/favicon.ico" />
 </head>
 <body>
-	<h1>Socket Smash</h1>
-	<div style='width:1000px; margin:0px auto;'>
-		<b>Press A to attack. Use arrow keys to move and space to jump.</b> King of the hill: get points from the orange platform.
-	</div>
+	<h1>Socket Smash <input type="button" value="Show Instructions" onclick="showControls();" /></h1>
 	<div class='container'>
 		<div class='messages'>
 			<div class='scores'></div>
 			<div class='winner'></div>
 		</div>
+        <div class='controls'>
+            <img src='img/controls.png' /><br/>
+            <input type="button" value="[X] Close Instructions" onclick="closeControls();" />
+        </div>
+        <script type="text/javascript">
+            function closeControls() {
+                $(".controls").hide();
+                localStorage.closeControls = "closed";
+            }
+            function showControls() {
+                $(".controls").show();
+                localStorage.closeControls = "open";
+            }
+            head.ready(function() {
+                if (localStorage.closeControls == "closed") closeControls();
+            });
+        </script>
+        <!-- <input type='button' onclick='AI.Start();' value='Start AI' /> -->
 	</div>
-	<div style='width:1000px; margin:0px auto;'>
-		<div class="fb-like" data-href="https://www.facebook.com/socketgames" data-send="false" data-width="450" data-show-faces="false" style='padding-top:5px; height:29px;'></div><br/><a style='font-size:20px;' href='http://socketracing.com/' target='_blank'>Try out Socket Racing!</a></div>
+	<div style='width:1000px; margin:0 auto;'>
+		<div class="fb-like" data-href="https://www.facebook.com/socketgames" data-send="false" data-width="450" data-show-faces="false" style='padding-top:5px; height:29px;'></div>
+    </div>
 
-	<script type='text/javascript'>
-	/* Author: Jason Chavannes <jason.chavannes@gmail.com>
-	 * Date: 9/2/2012 */
-	<?php $dir = str_replace('//','/',dirname(__FILE__).'/'); ?>
-	<?php echo file_get_contents($dir.'js/arenas/irule.js'); ?>
-	<?php //echo file_get_contents($dir.'js/arenas/safron.js'); ?>
-	<?php echo file_get_contents($dir.'js/Animate.js'); ?>
-	<?php echo file_get_contents($dir.'js/Arena.js'); ?>
-	<?php echo file_get_contents($dir.'js/Controls.js'); ?>
-	<?php echo file_get_contents($dir.'js/Moves.js'); ?>
-	<?php echo file_get_contents($dir.'js/Socket.js'); ?>
-	</script>
 
 	<script type="text/javascript">
 	  var _gaq = _gaq || [];
@@ -55,7 +80,7 @@
 	  })();
 	</script>
 	<div id="fb-root"></div>
-	<script>(function(d, s, id) {
+	<script type="text/javascript">(function(d, s, id) {
 	  var js, fjs = d.getElementsByTagName(s)[0];
 	  if (d.getElementById(id)) return;
 	  js = d.createElement(s); js.id = id;

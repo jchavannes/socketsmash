@@ -1,9 +1,9 @@
 var players = [
 	{
-		defaultLeft: 250,
-		defaultTop: 250,
-		left: 250,
-		top: 250,
+		defaultLeft: 520,
+		defaultTop: -250,
+		left: 520,
+		top: -250,
 		width: 18,
 		height: 36,
 		vforce: 0,

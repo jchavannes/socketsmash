@@ -2,7 +2,7 @@ html {
 	overflow-y: scroll;
 }
 body {
-	font-family: myriad-pro, Helvetica, Arial, sans-serif;
+    font-family: "Comic Sans MS", Helvetica, Arial, sans-serif;
 }
 h1 {
 	width: 1000px;
@@ -13,15 +13,15 @@ h1 {
 	padding-top: 600px;
 	overflow: hidden;
 	/*background: url(img/arena1.jpg);*/
-	margin: 0px auto;
+	margin: 0 auto;
 	position: relative;
 	font-size: 12px;
 	border: 1px solid #ccc;
 }
 .messages {
 	position: absolute;
-	top: 0px;
-	left: 0px;
+	top: 0;
+	left: 0;
 }
 .messages .points {
 	color: rgba(255,0,0,.9);
@@ -41,32 +41,70 @@ h1 {
 }
 .player {
 	position: absolute;
-	background: url(img/dude.png) -11px 0px;
+	background: url(img/dude.png) -11px 0;
 }
 .player.walkingLeft {
-	background: url(img/left-sprite.png) -11px 0px;
+	background: url(img/sprites_all.png) -11px 0;
 }
 .player.walkingRight {
-	background: url(img/right-sprite.png) -11px 0px;
+	background: url(img/sprites_all.png) -11px -240px;
 }
 .player.punchLeft {
-	background: url(img/punch-left-sprite.png) -11px 0px;
+    background: url(img/sprites_all.png) -11px -80px;
 }
 .player.punchRight {
-	background: url(img/punch-right-sprite.png) -11px 0px;
+    background: url(img/sprites_all.png) -11px -160px;
+}
+.player.shotgunLeft {
+    background: url(img/sprites_all.png) -11px -320px;
+}
+.player.shotgunRight {
+    background: url(img/sprites_all.png) -11px -400px;
 }
 .player.me {
-	background: url(img/dude_me.png) -11px 0px;
+	background: url(img/dude_me.png) -11px -40px;
 }
 .player.walkingLeft.me {
-	background: url(img/left-sprite_me.png) -11px 0px;
+	background: url(img/sprites_all.png) -11px -40px;
 }
 .player.walkingRight.me {
-	background: url(img/right-sprite_me.png) -11px 0px;
+	background: url(img/sprites_all.png) -11px -280px;
 }
 .player.punchLeft.me {
-	background: url(img/punch-left-sprite_me.png) -11px 0px;
+    background: url(img/sprites_all.png) -11px -120px;
 }
 .player.punchRight.me {
-	background: url(img/punch-right-sprite_me.png) -11px 0px;
+    background: url(img/sprites_all.png) -11px -200px;
+}
+.player.shotgunLeft.me {
+    background: url(img/sprites_all.png) -11px -360px;
+}
+.player.shotgunRight.me {
+    background: url(img/sprites_all.png) -11px -440px;
+}
+
+.bullet {
+	position: absolute;
+	width: 35px;
+	height: 2px;
+	background: url(img/bullets.png);
+}
+.controls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 150px 300px;
+    height: 400px;
+    text-align: center;
+    z-index: 1;
+    background: rgba(0,0,0,0.5);
+}
+.controls input[type=button] {
+    padding: 4px 15px;
+    font-size: 20px;
+    margin-top: 20px;
+}
+input {
+    cursor: pointer;
+    font-family: "Comic Sans MS", sans-serif;
 }

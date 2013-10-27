@@ -1,15 +1,16 @@
-var Arena = new (function() {
+var Arena = new(function() {
 	
 	this.init = function() {
+        var $container = $('.container'), i;
 
-		for(var i = 0; i < objects.length; i++) {
+		for(i = 0; i < objects.length; i++) {
 			objects[i].cords = [
 				{x: objects[i].left, y: objects[i].top},
 				{x: objects[i].left + objects[i].width, y: objects[i].top},
 				{x: objects[i].left + objects[i].width, y: objects[i].top + objects[i].height},
 				{x: objects[i].left, y: objects[i].top + objects[i].height}
-			]
-			$('.container').append($('<div class="object" />').css({
+			];
+			$container.append($('<div class="object" />').css({
 				left: objects[i].left,
 				top: objects[i].top,
 				width: objects[i].width,
@@ -17,23 +18,25 @@ var Arena = new (function() {
 			}));
 		}
 
-		for(var i = 0; i < players.length; i++) {
-			$('.container').append($('<div class="player me" />').css({
+		for(i = 0; i < players.length; i++) {
+            var $me = $('<div class="player me" />');
+			$container.append($me.css({
 				top: players[i].top,
 				left: players[i].left,
 				width: players[i].width,
 				height: players[i].height
 			}));
 		}
-		$('.object').eq(4).addClass('forPoints');
 
-	}
+	};
 
-	this.playerCollide = function() {
+	this.playerCollide = function(frontReach, backReach, upReach, downReach) {
+
+        var $me = $('.player.me');
 
 		var player1 = {
-			left: parseInt($('.player.me').css('left')),
-			top: parseInt($('.player.me').css('top')),
+			left: parseInt($me.css('left')),
+			top: parseInt($me.css('top')),
 			width: players[0].width,
 			height: players[0].height
 		};
@@ -46,7 +49,7 @@ var Arena = new (function() {
 		var collide = [];
 		$('.player').each(function(i) {
 			var ele = $('.player').eq(i);
-			if(ele.hasClass('me')) {return;}
+			if (ele.hasClass('me')) {return;}
 			var player2 = {
 				left: parseInt(ele.css('left')),
 				top: parseInt(ele.css('top')),
@@ -59,26 +62,24 @@ var Arena = new (function() {
 				{x: player2.left + player2.width, y: player2.top + player2.height},
 				{x: player2.left, y: player2.top + player2.height}			
 			];
-			var leftReach = 0, rightReach = 0;
-			if(Controls.facing == 'left') {leftReach = 10;}
-			else {rightReach = 10;}
+			var leftReach = backReach, rightReach = backReach;
+			if (Controls.facing == 'left') {leftReach = frontReach;}
+			else {rightReach = frontReach;}
 
-			var upReach = 5, downReach = 5;
-
-			if(player1.cords[2].x + rightReach > player2.cords[0].x
+			if (player1.cords[2].x + rightReach > player2.cords[0].x
 				&& player1.cords[2].y + downReach > player2.cords[0].y
 				&& player1.cords[0].x - leftReach< player2.cords[2].x
 				&& player1.cords[0].y - upReach < player2.cords[2].y)
 			{collide.push(i);}
 		});
 		return collide;
-	}
+	};
 
 	this.checkCollide = function(object) {
 
 		for(var i = 0; i < objects.length; i++) {
 
-			if(objects[i].type == 'box' &&
+			if (objects[i].type == 'box' &&
 				(Arena.inObject({x: object.left, y: object.top}, objects[i])
 				|| Arena.inObject({x: object.left + object.width, y: object.top}, objects[i])
 				|| Arena.inObject({x: object.left, y: object.top + object.height}, objects[i])
@@ -88,20 +89,15 @@ var Arena = new (function() {
 
 		}
 		return false;
-	}
+	};
 
 	this.inObject = function(cord, object) {
 
-		if(cord.x > object.cords[0].x
+        return (cord.x > object.cords[0].x
 			&& cord.x < object.cords[2].x
 			&& cord.y > object.cords[0].y
-			&& cord.y < object.cords[2].y)
-		{return true;}
+			&& cord.y < object.cords[2].y);
 
-		return false;
-
-	}
-
-	setTimeout(function() {Arena.init();});
+	};
 
 });
