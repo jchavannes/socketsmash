@@ -10,10 +10,13 @@
 
     <script type="text/javascript" src="js/3p/head.min.js"></script>
     <script type="text/javascript">
+        var socketIOUrl = ('https:' == document.location.protocol) ? '' : 'http://' + document.location.hostname + ':8236/';
+        console.log("socketIOUrl: " + socketIOUrl + "socket.io/socket.io.js");
         head.js(
             "js/3p/jquery-1.9.1.min.js",
             "js/3p/jquery-ui-1.10.1.min.js",
-            "js/3p/socket.io.js",
+            //"js/3p/socket.io.js",
+            socketIOUrl + "socket.io/socket.io.js",
             "js/arenas/irule.js",
             //"js/arenas/safron.js",
             "js/Animate.js",

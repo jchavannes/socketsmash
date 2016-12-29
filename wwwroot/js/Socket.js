@@ -4,7 +4,9 @@ var Socket = new (function() {
         lastDeath = false;
 
 	this.init = function() {
-        socket = io.connect('ws://192.168.200.39:8010');
+	    var socketUrl = ('https:' == document.location.protocol) ? 'wss://' : 'ws://:8236';
+	    console.log("Connecting to: " + socketUrl);
+        socket = io.connect(socketUrl);
         socket.on('connect', function() {
             socket.emit('setSession', {sessionId: SESSIONID, defaultLeft: players[0].left, defaultTop: players[0].top});
         });

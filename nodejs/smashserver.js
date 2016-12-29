@@ -1,7 +1,12 @@
 /* Author: Jason Chavannes <jason.chavannes@gmail.com>
  * Date: 9/2/2012 */
 
-var io = require('socket.io').listen(8010);
+var port = 80;
+
+var io = require('socket.io').listen(port);
+
+console.log("Started server on port " + port + " ...");
+
 io.sockets.on('connection', function (socket) {
     new Session(socket);
 });
@@ -178,7 +183,7 @@ Session.prototype.setEvents = function() {
     var socketPrototype = Object.getPrototypeOf(socket);
     var socketEmit = socketPrototype.emit;
     socketPrototype.emit = function() {
-        io.log.info(JSON.stringify(arguments));
+        console.log(JSON.stringify(arguments));
         socketEmit.apply(this, arguments);
     };
     socket.on('*', function() {
