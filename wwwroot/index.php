@@ -65,9 +65,6 @@
         </script>
         <!-- <input type='button' onclick='AI.Start();' value='Start AI' /> -->
 	</div>
-	<div style='width:1000px; margin:0 auto;'>
-		<div class="fb-like" data-href="https://www.facebook.com/socketgames" data-send="false" data-width="450" data-show-faces="false" style='padding-top:5px; height:29px;'></div>
-    </div>
 
 
 	<script type="text/javascript">
@@ -80,13 +77,5 @@
 	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 	  })();
 	</script>
-	<div id="fb-root"></div>
-	<script type="text/javascript">(function(d, s, id) {
-	  var js, fjs = d.getElementsByTagName(s)[0];
-	  if (d.getElementById(id)) return;
-	  js = d.createElement(s); js.id = id;
-	  js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId=290797547634776";
-	  fjs.parentNode.insertBefore(js, fjs);
-	}(document, 'script', 'facebook-jssdk'));</script>
 </body>
 </html>
