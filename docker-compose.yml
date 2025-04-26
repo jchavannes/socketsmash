@@ -1,0 +1,41 @@
+services:
+  http-prod:
+    image: socketsmash-http-prod
+    platform: linux/amd64
+    build:
+      dockerfile: http/Dockerfile
+      target: ${DOCKER_TARGET:-production}
+    profiles:
+      - prod
+  ws-prod:
+    image: socketsmash-ws-prod
+    platform: linux/amd64
+    build:
+      dockerfile: ws/Dockerfile
+      target: ${DOCKER_TARGET:-production}
+    profiles:
+      - prod
+  http-dev:
+    image: socketsmash-http-dev
+    container_name: socketsmash-http-dev
+    ports:
+      - "8235:80"
+    volumes:
+      - ./wwwroot/:/var/www/html/
+    build:
+      dockerfile: http/Dockerfile
+      target: ${DOCKER_TARGET:-development}
+    profiles:
+      - dev
+  ws-dev:
+    image: socketsmash-ws-dev
+    container_name: socketsmash-ws-dev
+    ports:
+      - "8236:80"
+    volumes:
+      - ./ws/files/:/var/www/ws/
+    build:
+      dockerfile: ws/Dockerfile
+      target: ${DOCKER_TARGET:-development}
+    profiles:
+      - dev
